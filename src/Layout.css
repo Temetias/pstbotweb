@@ -1,0 +1,64 @@
+.Layout {
+  text-align: center;
+}
+
+.Layout-logo {
+  height: 5rem;
+  pointer-events: none;
+  padding: 0.25rem 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .Layout-logo {
+    animation: Layout-logo-spin infinite 15s linear;
+  }
+}
+
+.Layout-header {
+  background-color: #202225;
+  display: flex;
+  align-items: center;
+}
+
+.Layout-header a {
+  font-size: 1.2rem;
+  color: white;
+  margin: 0 0.5rem;
+  text-decoration: none;
+}
+
+.Layout-header a h1 {
+  text-decoration: none;
+}
+
+.Layout-children {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding: 2rem 4rem;
+}
+
+.Layout-providers {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem;
+  background-color: #202225;
+  border-top: 1px solid #2f3136;
+  position: sticky;
+  top: 0;
+  font-weight: bold;
+}
+
+.Layout-provider-logo {
+  height: 2rem;
+}
+
+@keyframes Layout-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

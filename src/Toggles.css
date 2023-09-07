@@ -1,0 +1,14 @@
+.Toggle-button {
+  padding: 0.5rem;
+  appearance: none;
+  border: none;
+  color: white;
+  background-color: transparent;
+  user-select: none;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+.Toggle-button:hover,
+.Toggle-button-selected {
+  background-color: #40444b;
+}

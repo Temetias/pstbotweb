@@ -29,7 +29,7 @@ const TableTrackRow = ({
 }) => {
   const laps = useCombinedLapsBasedOnDatasetSelection(aorTrackId);
   const lap = laps.find((l) => l.carId === carId);
-  const track = TRACKS.find((t) => t.aorId == aorTrackId);
+  const track = TRACKS.find((t) => t.aorId === aorTrackId);
   if (!lap || !track)
     return (
       <tr>

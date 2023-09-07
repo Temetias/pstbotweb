@@ -66,6 +66,7 @@ export type UnifiedLap = {
   driverName: string;
   lapTime: number;
   gap: number;
+  negativeGap: number;
   s1: number;
   s2: number;
   s3: number;
@@ -97,64 +98,78 @@ export const secondsToLaptime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, "0");
-  return `${minutes}:${formattedSeconds}`;
+  return minutes ? `${minutes}:${formattedSeconds}` : formattedSeconds;
 };
 
 const cachedFetch = (() => {
-  const cache: Record<string, any> = {};
+  const cache: Record<string, Promise<any>> = {};
+
   return async <T extends any>(url: string, init?: RequestInit): Promise<T> => {
-    if (cache[url]) {
+    if (url in cache) {
+      // If there is an ongoing fetch request for the same URL, return its promise.
       return cache[url];
     }
-    cache[url] = null;
-    return fetch(url, init)
+    const fetchPromise = fetch(url, init)
       .then((res) => res.json())
       .then((res: T) => {
-        cache[url] = res;
+        // No need to nullify the promise; just return the response.
         return res;
+      })
+      .catch((error) => {
+        // Handle errors and remove the promise from the cache in case of an error.
+        delete cache[url];
+        throw error;
       });
+
+    // Store the promise in the cache to indicate an ongoing request.
+    cache[url] = fetchPromise;
+    return fetchPromise;
   };
 })();
 
 export const useLfmLaps = (aorTrackId?: string) => {
-  const { store, dispatch } = useStoreWithDispatch();
+  const dispatch = useStoreDispatch();
+  const store = useStore();
   useEffect(() => {
-    if (!aorTrackId) return;
+    if (!aorTrackId || !!store.lfm.laps[aorTrackId]?.length) return;
     const lfmTrackId = TRACKS.find((t) => t.aorId === aorTrackId)?.lfmId;
     if (!lfmTrackId) return;
     cachedFetch<LfmGetLapsResponse>(
       `https://api2.lowfuelmotorsport.com/api/hotlaps?track=${lfmTrackId}&major=1.9`
     ).then((lapsResponse) => {
-      dispatch({
+      dispatch((s) => ({
+        ...s,
         lfm: {
-          ...store.lfm,
+          ...s.lfm,
           laps: {
-            ...store.lfm.laps,
+            ...s.lfm.laps,
             [aorTrackId]: lapsResponse.data,
           },
         },
-      });
+      }));
     });
   }, [aorTrackId]);
   return aorTrackId ? store.lfm.laps[aorTrackId] || [] : [];
 };
 
 export const useAorLaps = (aorTrackId?: string) => {
-  const { store, dispatch } = useStoreWithDispatch();
+  const dispatch = useStoreDispatch();
+  const store = useStore();
   useEffect(() => {
-    if (!aorTrackId) return;
+    if (!aorTrackId || !!store.aor.laps[aorTrackId]?.length) return;
     cachedFetch<AorGetLapsResponse>(
       `https://aor-hotlap.skillissue.be/api/hotlaps/${aorTrackId}?patch=1.9`
     ).then((lapsResponse) => {
-      dispatch({
+      dispatch((s) => ({
+        ...s,
         aor: {
-          ...store.aor,
+          ...s.aor,
           laps: {
-            ...store.aor.laps,
+            ...s.aor.laps,
             [aorTrackId]: lapsResponse,
           },
         },
-      });
+      }));
     });
   }, [aorTrackId]);
   return aorTrackId ? store.aor.laps[aorTrackId] || [] : [];
@@ -162,7 +177,7 @@ export const useAorLaps = (aorTrackId?: string) => {
 
 const aorLapToUnifiedLapWithoutGaps = (
   l: AorGetLapsResponse[number]
-): Omit<UnifiedLap, "gap"> => {
+): Omit<UnifiedLap, "gap" | "negativeGap"> => {
   const carName =
     l.car_name === "ferrari 488 challenge evo"
       ? l.car_name
@@ -170,6 +185,7 @@ const aorLapToUnifiedLapWithoutGaps = (
           .split("(")[0]
           .toLowerCase()
           .replace("gt3", "")
+          .replace("gt4", "")
           .replace("991ii", "991 ii")
           .replace("gt r", "gt-r")
           .replace("huracan", "huracán")
@@ -198,9 +214,9 @@ const aorLapToUnifiedLapWithoutGaps = (
   };
 };
 
-const lfmLapToUnifiedLapWithouGaps = (
+const lfmLapToUnifiedLapWithoutGaps = (
   l: LfmGetLapsResponseData[number]
-): Omit<UnifiedLap, "gap"> => {
+): Omit<UnifiedLap, "gap" | "negativeGap"> => {
   const carName = l.car_name
     .toLowerCase()
     .replace("gt3", "")
@@ -231,10 +247,35 @@ const lfmLapToUnifiedLapWithouGaps = (
 };
 
 const addGapToUnifiedLap =
-  (fastestLap: Omit<UnifiedLap, "gap">) => (lap: Omit<UnifiedLap, "gap">) => ({
+  (fastestLap: Omit<UnifiedLap, "gap" | "negativeGap">) =>
+  (lap: Omit<UnifiedLap, "gap" | "negativeGap">) => ({
     ...lap,
     gap: lap.lapTime - fastestLap.lapTime,
+    negativeGap: 0,
   });
+
+export const combineLapsBasedOnDataSetSelection = (
+  dataset: "combined" | "AOR" | "LFM",
+  aorLaps: AorGetLapsResponse,
+  lfmLaps: LfmGetLapsResponseData
+) => {
+  const unifiedAorLaps =
+    dataset !== "LFM" ? aorLaps.map(aorLapToUnifiedLapWithoutGaps) : [];
+  const unifiedLfmLaps =
+    dataset !== "AOR" ? lfmLaps.map(lfmLapToUnifiedLapWithoutGaps) : [];
+  const [fastest, secondFastest, ...rest] = [
+    ...unifiedAorLaps,
+    ...unifiedLfmLaps,
+  ].sort((a, b) => a.lapTime - b.lapTime);
+  return [
+    {
+      ...fastest,
+      gap: 0,
+      negativeGap: secondFastest?.lapTime - fastest?.lapTime,
+    },
+    ...rest.map(addGapToUnifiedLap(fastest)),
+  ];
+};
 
 export const useCombinedLapsBasedOnDatasetSelection = (
   aorTrackId?: string
@@ -242,14 +283,7 @@ export const useCombinedLapsBasedOnDatasetSelection = (
   const { dataset } = useStore();
   const lfmLaps = useLfmLaps(aorTrackId);
   const aorLaps = useAorLaps(aorTrackId);
-  const unifiedAorLaps =
-    dataset !== "LFM" ? aorLaps.map(aorLapToUnifiedLapWithoutGaps) : [];
-  const unifiedLfmLaps =
-    dataset !== "AOR" ? lfmLaps.map(lfmLapToUnifiedLapWithouGaps) : [];
-  const [fastest, ...rest] = [...unifiedAorLaps, ...unifiedLfmLaps].sort(
-    (a, b) => a.lapTime - b.lapTime
-  );
-  return [{ ...fastest, gap: 0 }, ...rest.map(addGapToUnifiedLap(fastest))];
+  return combineLapsBasedOnDataSetSelection(dataset, aorLaps, lfmLaps);
 };
 
 export const makeArrayUniqueByKey = <T extends object>(
@@ -269,9 +303,30 @@ export const makeArrayUniqueByKey = <T extends object>(
   return uniqueArr;
 };
 
+export const findMostCommonValue = <T extends object>(
+  arr: T[],
+  propertyName: keyof T
+): T[keyof T] | null => {
+  const valueFrequencies: Record<string, number> = {};
+
+  arr.forEach((item) => {
+    const value = item[propertyName] as string;
+    valueFrequencies[value] = (valueFrequencies[value] || 0) + 1;
+  });
+  let mostCommonValue: T[keyof T] | null = null;
+  let maxFrequency = 0;
+  for (const value in valueFrequencies) {
+    if (valueFrequencies[value] > maxFrequency) {
+      mostCommonValue = value as T[keyof T];
+      maxFrequency = valueFrequencies[value];
+    }
+  }
+  return mostCommonValue;
+};
+
 const StoreContext = createContext<{
   store: StoreData;
-  dispatch: (d: Partial<StoreData>) => void;
+  dispatch: React.Dispatch<React.SetStateAction<StoreData>>;
 }>({
   dispatch: (_) => {},
   store: {
@@ -290,9 +345,9 @@ export const useStore = () => {
   return store;
 };
 
-export const useStoreWithDispatch = () => {
-  const { store, dispatch } = useContext(StoreContext);
-  return { store, dispatch };
+export const useStoreDispatch = () => {
+  const { dispatch } = useContext(StoreContext);
+  return dispatch;
 };
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
@@ -310,7 +365,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     <StoreContext.Provider
       value={{
         store: storeState,
-        dispatch: (d) => setStoreState((s) => ({ ...s, ...d })),
+        dispatch: setStoreState,
       }}
     >
       {children}

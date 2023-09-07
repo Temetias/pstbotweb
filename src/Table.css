@@ -1,0 +1,34 @@
+.Table {
+  border-spacing: 0;
+}
+
+.Table td,
+.Table th {
+  border: 1px solid #2f3136;
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+}
+
+.Table td {
+  background-color: #202225;
+  text-transform: capitalize;
+}
+
+.Table th {
+  background-color: black;
+}
+
+.Table td div {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.Table td:first-child {
+  text-align: left;
+}
+
+.Table img {
+  height: 1.25rem;
+}

@@ -10,7 +10,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .Layout-logo {
-    animation: Layout-logo-spin infinite 15s linear;
+    animation: Layout-logo-spin infinite 5s ease-in-out;
   }
 }
 

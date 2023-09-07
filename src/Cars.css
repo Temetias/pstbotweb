@@ -1,0 +1,57 @@
+.Cars-selections button img {
+  height: 1.25rem;
+}
+
+.Cars-selections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.Cars-selections button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Cars-content {
+  padding-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.Cars-info {
+  padding-top: 3rem;
+  flex: 1;
+}
+
+.Cars-info label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 20rem;
+  margin-bottom: 0.5rem;
+}
+
+.Cars-info label b {
+  text-align: initial;
+}
+
+.Cars-info label > * {
+  display: block;
+}
+
+.Cars-info label span {
+  font-weight: normal;
+}
+
+.Cars-table {
+  min-width: 50%;
+}
+
+.Cars-table tr td img {
+  height: 0.75rem;
+  padding-right: 0.5rem;
+}

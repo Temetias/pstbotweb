@@ -174,140 +174,181 @@ export const TRACKS = [
 ];
 
 export const CARS = {
-  "audi r8 lms evo ii GT3 (2022)": {
+  "alpine a110 gt4 GT4 (2018)": {
+    lfmRelevant: false,
+    img: alpine,
+  },
+  "amr v12 vantage GT3 (2013)": {
+    lfmRelevant: false,
+    img: aston,
+  },
+  "amr v8 vantage GT3 (2019)": {
+    lfmRelevant: true,
+    img: aston,
+  },
+  "aston martin vantage GT4 (2018)": {
+    lfmRelevant: false,
+    img: aston,
+  },
+  "audi r8 lms GT3 (2015)": {
+    lfmRelevant: false,
     img: audi,
   },
-  "bmw m4 GT3 (2022)": {
+  "audi r8 lms evo GT3 (2019)": {
+    lfmRelevant: false,
+    img: audi,
+  },
+  "audi r8 lms evo ii GT3 (2022)": {
+    lfmRelevant: true,
+    img: audi,
+  },
+  "bentley continental GT3 (2015)": {
+    lfmRelevant: false,
+    img: bentley,
+  },
+  "bentley continental GT3 (2018)": {
+    lfmRelevant: true,
+    img: bentley,
+  },
+  "bmw m2 cs BMW M2 (2022)": {
+    lfmRelevant: false,
     img: bmw,
   },
-  "porsche 992 r GT3 (2023)": {
+  "bmw m4 GT3 (2022)": {
+    lfmRelevant: true,
+    img: bmw,
+  },
+  "bmw m4 GT4 (2018)": {
+    lfmRelevant: false,
+    img: bmw,
+  },
+  "bmw m6 GT3 (2017)": {
+    lfmRelevant: false,
+    img: bmw,
+  },
+  "chevrolet camaro GT4 (2017)": {
+    lfmRelevant: false,
+    img: chevrolet,
+  },
+  "emil frey jaguar g3 GT3 (2012)": {
+    lfmRelevant: false,
+    img: jaguar,
+  },
+  "ferrari 296 GT3 (2023)": {
+    lfmRelevant: true,
+    img: ferrari,
+  },
+  "ferrari 488 challenge evo FERRARI CHALLENGE (2020)": {
+    lfmRelevant: false,
+    img: ferrari,
+  },
+  "ferrari 488 GT3 (2015)": {
+    lfmRelevant: false,
+    img: ferrari,
+  },
+  "ferrari 488 evo GT3 (2020)": {
+    lfmRelevant: false,
+    img: ferrari,
+  },
+  "ginetta g55 GT4 (2012)": {
+    lfmRelevant: false,
+    img: ginetta,
+  },
+  "honda nsx evo GT3 (2019)": {
+    lfmRelevant: true,
+    img: honda,
+  },
+  "ktm x-bow GT4 (2016)": {
+    lfmRelevant: false,
+    img: ktm,
+  },
+  "lamborghini huracán GT3 (2015)": {
+    lfmRelevant: false,
+    img: lamborghini,
+  },
+  "lamborghini huracán evo GT3 (2019)": {
+    lfmRelevant: false,
+    img: lamborghini,
+  },
+  "lamborghini huracán evo 2 GT3 (2023)": {
+    lfmRelevant: true,
+    img: lamborghini,
+  },
+  "lamborghini huracán super trofeo evo2 ST (2022)": {
+    lfmRelevant: false,
+    img: lamborghini,
+  },
+  "lexus rc f GT3 (2016)": {
+    lfmRelevant: false,
+    img: lexus,
+  },
+  "maserati mc GT4 (2016)": {
+    lfmRelevant: false,
+    img: maserati,
+  },
+  "mclaren 570s GT4 (2016)": {
+    lfmRelevant: false,
+    img: mclaren,
+  },
+  "mclaren 650s GT3 (2015)": {
+    lfmRelevant: false,
+    img: mclaren,
+  },
+  "mclaren 720s GT3 (2019)": {
+    lfmRelevant: false,
+    img: mclaren,
+  },
+  "mclaren 720s evo GT3 (2023)": {
+    lfmRelevant: true,
+    img: mclaren,
+  },
+  "mercedes amg GT3 (2015)": {
+    lfmRelevant: false,
+    img: amg,
+  },
+  "mercedes amg GT4 (2016)": {
+    lfmRelevant: false,
+    img: amg,
+  },
+  "mercedes-amg GT3 (2020)": {
+    lfmRelevant: true,
+    img: amg,
+  },
+  "nissan gt-r nismo GT3 (2015)": {
+    lfmRelevant: false,
+    img: nissan,
+  },
+  "nissan gt-r nismo GT3 (2018)": {
+    lfmRelevant: false,
+    img: nissan,
+  },
+  "porsche 718 cayman GT4 (2019)": {
+    lfmRelevant: false,
     img: porsche,
   },
   "porsche 991 ii r GT3 (2019)": {
+    lfmRelevant: false,
     img: porsche,
-  },
-  "lamborghini huracán evo 2 GT3 (2023)": {
-    img: lamborghini,
-  },
-  "mercedes-amg GT3 (2020)": {
-    img: amg,
-  },
-  "ferrari 296 GT3 (2023)": {
-    img: ferrari,
-  },
-  "amr v8 vantage GT3 (2019)": {
-    img: aston,
-  },
-  "honda nsx evo GT3 (2019)": {
-    img: honda,
-  },
-  "mclaren 720s evo GT3 (2023)": {
-    img: mclaren,
-  },
-  "nissan gt-r nismo GT3 (2018)": {
-    img: nissan,
-  },
-  "mclaren 720s GT3 (2019)": {
-    img: mclaren,
-  },
-  "bentley continental GT3 (2018)": {
-    img: bentley,
-  },
-  "ferrari 488 evo GT3 (2020)": {
-    img: ferrari,
-  },
-  "audi r8 lms evo GT3 (2019)": {
-    img: audi,
-  },
-  "lexus rc f GT3 (2016)": {
-    img: lexus,
-  },
-  "ferrari 488 GT3 (2015)": {
-    img: ferrari,
-  },
-  "amr v12 vantage GT3 (2013)": {
-    img: aston,
   },
   "porsche 991 r GT3 (2018)": {
+    lfmRelevant: false,
     img: porsche,
-  },
-  "lamborghini huracán super trofeo evo2 ST (2022)": {
-    img: lamborghini,
-  },
-  "reiter engineering r-ex GT3 (2017)": {
-    img: reiter,
   },
   "porsche 992 cup CUP (2022)": {
+    lfmRelevant: false,
     img: porsche,
   },
-  "lamborghini huracán GT3 (2015)": {
-    img: lamborghini,
-  },
-  "mclaren 650s GT3 (2015)": {
-    img: mclaren,
-  },
-  "lamborghini huracán evo GT3 (2019)": {
-    img: lamborghini,
-  },
-  "alpine a110 gt4 GT4 (2018)": {
-    img: alpine,
-  },
-  "porsche 718 cayman gt4 GT4 (2019)": {
+  "porsche 992 r GT3 (2023)": {
+    lfmRelevant: true,
     img: porsche,
   },
-  "mercedes amg gt4 GT4 (2016)": {
-    img: amg,
-  },
-  "bmw m2 cs BMW M2 (2022)": {
-    img: bmw,
-  },
-  "mercedes amg GT3 (2015)": {
-    img: amg,
-  },
-  "bmw m6 GT3 (2017)": {
-    img: bmw,
-  },
-  "emil frey jaguar g3 GT3 (2012)": {
-    img: jaguar,
-  },
-  "audi r8 lms GT3 (2015)": {
-    img: audi,
-  },
-  "ferrari 488 challenge evo FERRARI CHALLENGE (2020)": {
-    img: ferrari,
-  },
-  "ginetta g55 gt4 GT4 (2012)": {
-    img: ginetta,
-  },
-  "porsche 718 cayman gt4 clubsport GT4 (2019)": {
+  "porsche 718 cayman clubsport GT4 (2019)": {
+    lfmRelevant: false,
     img: porsche,
   },
-  "aston martin vantage gt4 GT4 (2018)": {
-    img: aston,
-  },
-  "bmw m4 gt4 GT4 (2018)": {
-    img: bmw,
-  },
-  "maserati mc gt4 GT4 (2016)": {
-    img: maserati,
-  },
-  "chevrolet camaro gt4 GT4 (2017)": {
-    img: chevrolet,
-  },
-  "nissan gt-r nismo GT3 (2015)": {
-    img: nissan,
-  },
-  "bentley continental GT3 (2015)": {
-    img: bentley,
-  },
-  "ktm x-bow gt4 GT4 (2016)": {
-    img: ktm,
-  },
-  "audi r8 lms gt4 GT4 (2018)": {
-    img: audi,
-  },
-  "mclaren 570s gt4 GT4 (2016)": {
-    img: mclaren,
+  "reiter engineering r-ex GT3 (2017)": {
+    lfmRelevant: false,
+    img: reiter,
   },
 };
 

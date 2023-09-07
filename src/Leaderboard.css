@@ -1,38 +1,3 @@
-.Leaderboard-table {
-  border-spacing: 0;
-}
-
-.Leaderboard-table td,
-.Leaderboard-table th {
-  border: 1px solid #2f3136;
-  padding: 0.5rem 0.75rem;
-  vertical-align: middle;
-}
-
-.Leaderboard-table td {
-  background-color: #202225;
-  text-transform: capitalize;
-}
-
-.Leaderboard-table th {
-  background-color: black;
-}
-
-.Leaderboard-table td div {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-}
-
-.Leaderboard-table td:first-child {
-  text-align: left;
-}
-
-.Leaderboard-table img {
-  height: 1.25rem;
-}
-
 .Leaderboard-tracks {
   display: flex;
   flex-wrap: wrap;
@@ -48,8 +13,4 @@
   font-weight: bold;
   font-size: 1.15rem;
   margin: 0 0.15rem;
-}
-
-.Leaderboard-laptime {
-  font-weight: bold;
 }

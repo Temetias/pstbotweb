@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 //import { Bop } from "./Bop";
 import { Layout } from "./Layout";
+import { Cars } from "./Cars";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/leaderboard/*",
     element: <Leaderboard />,
+  },
+  {
+    path: "/cars/*",
+    element: <Cars />,
   },
   /*   {
     path: "/bop/*",
@@ -40,11 +45,11 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
-    <StoreProvider>
-      <RouterProvider router={router} />
-    </StoreProvider>
-  </React.StrictMode>
+  /*   <React.StrictMode> */
+  <StoreProvider>
+    <RouterProvider router={router} />
+  </StoreProvider>
+  /*   </React.StrictMode> */
 );
 
 // If you want to start measuring performance in your app, pass a function

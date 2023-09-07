@@ -15,6 +15,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { CARS, TRACKS } from "./constants";
+import "./Table.css";
 
 const Table = () => {
   const params = useParams();
@@ -48,7 +49,7 @@ const Table = () => {
           </ToggleButton>
         ))}
       </div>
-      <table className="Leaderboard-table">
+      <table className="Table">
         <thead>
           <tr>
             <th>Driver</th>
@@ -72,8 +73,8 @@ const Table = () => {
                   {l.carName} {l.carClass} ({l.carYear})
                 </div>
               </td>
-              <td className="Leaderboard-laptime">
-                {secondsToLaptime(l.lapTime)}
+              <td>
+                <b>{secondsToLaptime(l.lapTime)}</b>
               </td>
               <td>{l.gap ? secondsToLaptime(l.gap) : ""}</td>
               <td>{secondsToLaptime(l.s1)}</td>

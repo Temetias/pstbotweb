@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from "react";
-import { useStoreWithDispatch } from "./Store";
+import { useStore, useStoreDispatch } from "./Store";
 import logo from "./logos/PST_Wicked.png";
 import { ToggleButton } from "./Toggles";
 import "./Layout.css";
@@ -7,7 +7,8 @@ import { Link } from "react-router-dom";
 import { PROVIDERS } from "./constants";
 
 export const Layout = ({ children }: PropsWithChildren) => {
-  const { store, dispatch } = useStoreWithDispatch();
+  const dispatch = useStoreDispatch();
+  const store = useStore();
   return (
     <div className="Layout">
       <header className="Layout-header">
@@ -23,7 +24,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
         {(["LFM", "combined", "AOR"] as const).map((d) => (
           <ToggleButton
             key={d}
-            onClick={() => dispatch({ dataset: d })}
+            onClick={() => dispatch((s) => ({ ...s, dataset: d }))}
             selected={store.dataset === d}
           >
             {PROVIDERS[d as keyof typeof PROVIDERS]?.logo ? (

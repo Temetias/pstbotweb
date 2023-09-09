@@ -5,7 +5,15 @@ import {
   useEffect,
   useState,
 } from "react";
-import { TRACKS } from "./constants";
+import { CARS, TRACKS } from "./constants";
+
+export type LfmTrackId = (typeof TRACKS)[number]["lfmId"];
+
+export type AorTrackId = (typeof TRACKS)[number]["aorId"];
+
+export type Version = `${number}.${number}.${number}`;
+
+export type CarId = keyof typeof CARS;
 
 export type LfmGetLapsResponseData = {
   car_class: string; // "GT3";
@@ -29,11 +37,11 @@ export type LfmGetLapsResponseData = {
   split: number; // 1;
   splits: string; // "[29102,39580,34290]";
   steamid: string; // "76561198882393980";
-  track_id: number; // 124;
+  track_id: LfmTrackId; // 124;
   track_name: string; // "Circuit de Catalunya";
   updated_at: string; // "2023-09-03 15:03:02";
   user_id: number; // 65110;
-  version: string; // "1.9.5";
+  version: Version; // "1.9.5";
   version_suffix: string; // "5";
   vorname: string; // "Anthony";
 }[];
@@ -44,7 +52,7 @@ export type LfmGetLapsResponse = {
 };
 
 export type AorGetLapsResponse = {
-  acc_patch: string; // "1.9.5";
+  acc_patch: Version; // "1.9.5";
   avg_speed: number; // 195;
   car_class: string; // "gt3";
   car_name: string; // "lamborghini huracan evo 2 (2023)";
@@ -55,7 +63,7 @@ export type AorGetLapsResponse = {
   s2_time: number; // 33.209999084472656;
   s3_time: number; // 39.96500015258789;
   scrape_date: number; // "Mon, 28 Aug 2023 20:48:42 GMT";
-  track: string; // "watkins_glen";
+  track: AorTrackId; // "watkins_glen";
 }[];
 
 export type UnifiedLap = {
@@ -65,12 +73,10 @@ export type UnifiedLap = {
   carYear: number;
   driverName: string;
   lapTime: number;
-  gap: number;
-  negativeGap: number;
   s1: number;
   s2: number;
   s3: number;
-  track: string;
+  track: AorTrackId;
   version: string;
   server: "AOR" | "LFM";
 };
@@ -78,10 +84,10 @@ export type UnifiedLap = {
 export type StoreData = {
   dataset: "AOR" | "LFM" | "combined";
   lfm: {
-    laps: Record<string, LfmGetLapsResponseData>;
+    laps: Record<AorTrackId, Record<CarId, UnifiedLap[]>>;
   };
   aor: {
-    laps: Record<string, AorGetLapsResponse>;
+    laps: Record<AorTrackId, Record<CarId, UnifiedLap[]>>;
   };
 };
 
@@ -95,10 +101,17 @@ export const laptimeToSeconds = (laptime: string) => {
 };
 
 export const secondsToLaptime = (seconds: number) => {
+  const isNegative = seconds < 0;
+  seconds = Math.abs(seconds);
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, "0");
-  return minutes ? `${minutes}:${formattedSeconds}` : formattedSeconds;
+  if (isNegative && minutes === 0) {
+    return `-${formattedSeconds}`;
+  }
+  return minutes
+    ? `${isNegative ? "-" : ""}${minutes}:${formattedSeconds}`
+    : `${isNegative ? "-" : ""}${formattedSeconds}`;
 };
 
 const cachedFetch = (() => {
@@ -127,11 +140,14 @@ const cachedFetch = (() => {
   };
 })();
 
-export const useLfmLaps = (aorTrackId?: string) => {
+export const useLfmLaps = (
+  aorTrackId?: AorTrackId
+): Record<CarId, UnifiedLap[]> => {
   const dispatch = useStoreDispatch();
   const store = useStore();
   useEffect(() => {
-    if (!aorTrackId || !!store.lfm.laps[aorTrackId]?.length) return;
+    if (!aorTrackId || !!Object.keys(store.lfm.laps[aorTrackId] || {}).length)
+      return;
     const lfmTrackId = TRACKS.find((t) => t.aorId === aorTrackId)?.lfmId;
     if (!lfmTrackId) return;
     cachedFetch<LfmGetLapsResponse>(
@@ -143,20 +159,30 @@ export const useLfmLaps = (aorTrackId?: string) => {
           ...s.lfm,
           laps: {
             ...s.lfm.laps,
-            [aorTrackId]: lapsResponse.data,
+            [aorTrackId]: splitArrayByProperty(
+              lapsResponse.data
+                .map(lfmLapToUnifiedLap)
+                .sort((a, b) => a.lapTime - b.lapTime),
+              "carId"
+            ),
           },
         },
       }));
     });
   }, [aorTrackId]);
-  return aorTrackId ? store.lfm.laps[aorTrackId] || [] : [];
+  return aorTrackId
+    ? store.lfm.laps[aorTrackId] || {}
+    : ({} as Record<CarId, UnifiedLap[]>);
 };
 
-export const useAorLaps = (aorTrackId?: string) => {
+export const useAorLaps = (
+  aorTrackId?: AorTrackId
+): Record<CarId, UnifiedLap[]> => {
   const dispatch = useStoreDispatch();
   const store = useStore();
   useEffect(() => {
-    if (!aorTrackId || !!store.aor.laps[aorTrackId]?.length) return;
+    if (!aorTrackId || !!Object.keys(store.aor.laps[aorTrackId] || {}).length)
+      return;
     cachedFetch<AorGetLapsResponse>(
       `https://aor-hotlap.skillissue.be/api/hotlaps/${aorTrackId}?patch=1.9`
     ).then((lapsResponse) => {
@@ -166,18 +192,23 @@ export const useAorLaps = (aorTrackId?: string) => {
           ...s.aor,
           laps: {
             ...s.aor.laps,
-            [aorTrackId]: lapsResponse,
+            [aorTrackId]: splitArrayByProperty(
+              lapsResponse
+                .map(aorLapToUnifiedLap)
+                .sort((a, b) => a.lapTime - b.lapTime),
+              "carId"
+            ),
           },
         },
       }));
     });
   }, [aorTrackId]);
-  return aorTrackId ? store.aor.laps[aorTrackId] || [] : [];
+  return aorTrackId
+    ? store.aor.laps[aorTrackId] || {}
+    : ({} as Record<CarId, UnifiedLap[]>);
 };
 
-const aorLapToUnifiedLapWithoutGaps = (
-  l: AorGetLapsResponse[number]
-): Omit<UnifiedLap, "gap" | "negativeGap"> => {
+const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
   const carName =
     l.car_name === "ferrari 488 challenge evo"
       ? l.car_name
@@ -208,15 +239,13 @@ const aorLapToUnifiedLapWithoutGaps = (
     s1: l.s1_time,
     s2: l.s2_time,
     s3: l.s3_time,
-    track: TRACKS.find((t) => t.aorId === l.track)?.name || "",
+    track: TRACKS.find((t) => t.aorId === l.track)!.aorId,
     version: l.acc_patch,
     server: "AOR",
   };
 };
 
-const lfmLapToUnifiedLapWithoutGaps = (
-  l: LfmGetLapsResponseData[number]
-): Omit<UnifiedLap, "gap" | "negativeGap"> => {
+const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
   const carName = l.car_name
     .toLowerCase()
     .replace("gt3", "")
@@ -240,50 +269,66 @@ const lfmLapToUnifiedLapWithoutGaps = (
     s1: laptimeToSeconds(l.s1),
     s2: laptimeToSeconds(l.s2),
     s3: laptimeToSeconds(l.s3),
-    track: TRACKS.find((t) => t.lfmId === l.track_id)?.name || "",
+    track: TRACKS.find((t) => t.lfmId === l.track_id)!.aorId,
     version: l.version,
     server: "LFM",
   };
 };
 
-const addGapToUnifiedLap =
-  (fastestLap: Omit<UnifiedLap, "gap" | "negativeGap">) =>
-  (lap: Omit<UnifiedLap, "gap" | "negativeGap">) => ({
-    ...lap,
-    gap: lap.lapTime - fastestLap.lapTime,
-    negativeGap: 0,
-  });
-
 export const combineLapsBasedOnDataSetSelection = (
   dataset: "combined" | "AOR" | "LFM",
-  aorLaps: AorGetLapsResponse,
-  lfmLaps: LfmGetLapsResponseData
-) => {
-  const unifiedAorLaps =
-    dataset !== "LFM" ? aorLaps.map(aorLapToUnifiedLapWithoutGaps) : [];
-  const unifiedLfmLaps =
-    dataset !== "AOR" ? lfmLaps.map(lfmLapToUnifiedLapWithoutGaps) : [];
-  const [fastest, secondFastest, ...rest] = [
-    ...unifiedAorLaps,
-    ...unifiedLfmLaps,
-  ].sort((a, b) => a.lapTime - b.lapTime);
-  return [
-    {
-      ...fastest,
-      gap: 0,
-      negativeGap: secondFastest?.lapTime - fastest?.lapTime,
-    },
-    ...rest.map(addGapToUnifiedLap(fastest)),
-  ];
+  aorLaps: Record<CarId, UnifiedLap[]>,
+  lfmLaps: Record<CarId, UnifiedLap[]>
+): Record<CarId, UnifiedLap[]> => {
+  const aorLapsByDataset =
+    dataset !== "LFM" ? aorLaps : ({} as Record<CarId, UnifiedLap[]>);
+  const lfmLapsByDataset =
+    dataset !== "AOR" ? lfmLaps : ({} as Record<CarId, UnifiedLap[]>);
+  const combinedLaps: Record<CarId, UnifiedLap[]> = {} as Record<
+    CarId,
+    UnifiedLap[]
+  >;
+  for (const _carId in aorLapsByDataset) {
+    const carId: CarId = _carId as CarId;
+    combinedLaps[carId] = aorLapsByDataset[carId];
+  }
+  for (const _carId in lfmLapsByDataset) {
+    const carId: CarId = _carId as CarId;
+    combinedLaps[carId] = [
+      ...(combinedLaps[carId] || []),
+      ...lfmLapsByDataset[carId],
+    ].sort((a, b) => a.lapTime - b.lapTime);
+  }
+  return combinedLaps;
 };
 
 export const useCombinedLapsBasedOnDatasetSelection = (
-  aorTrackId?: string
-): UnifiedLap[] => {
+  aorTrackId?: AorTrackId
+): Record<CarId, UnifiedLap[]> => {
   const { dataset } = useStore();
   const lfmLaps = useLfmLaps(aorTrackId);
   const aorLaps = useAorLaps(aorTrackId);
   return combineLapsBasedOnDataSetSelection(dataset, aorLaps, lfmLaps);
+};
+
+export const splitArrayByProperty = <
+  T1 extends Record<string, string | number>,
+  T2 extends keyof T1
+>(
+  arr: T1[],
+  propertyName: T2
+): Record<T1[T2], T1[]> => {
+  const resultObject: Record<T1[T2], T1[]> = {} as Record<T1[T2], T1[]>;
+
+  for (const item of arr) {
+    const propertyValue = item[propertyName];
+    if (!resultObject[propertyValue]) {
+      resultObject[propertyValue] = [];
+    }
+    resultObject[propertyValue].push(item);
+  }
+
+  return resultObject;
 };
 
 export const makeArrayUniqueByKey = <T extends object>(
@@ -332,10 +377,10 @@ const StoreContext = createContext<{
   store: {
     dataset: "combined",
     lfm: {
-      laps: {},
+      laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
     aor: {
-      laps: {},
+      laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
   },
 });
@@ -353,11 +398,11 @@ export const useStoreDispatch = () => {
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const [storeState, setStoreState] = useState<StoreData>({
     aor: {
-      laps: {},
+      laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
     dataset: "combined",
     lfm: {
-      laps: {},
+      laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
   });
 

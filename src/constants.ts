@@ -171,10 +171,10 @@ export const TRACKS = [
     name: "Circuit Ricardo Tormo",
     flag: es,
   },
-];
+] as const;
 
 export const CARS = {
-  "alpine a110 gt4 GT4 (2018)": {
+  "alpine a110 GT4 (2018)": {
     lfmRelevant: false,
     img: alpine,
   },
@@ -350,7 +350,7 @@ export const CARS = {
     lfmRelevant: false,
     img: reiter,
   },
-};
+} as const;
 
 export const PROVIDERS = {
   LFM: {
@@ -359,4 +359,4 @@ export const PROVIDERS = {
   AOR: {
     logo: aor,
   },
-};
+} as const;

@@ -1,6 +1,9 @@
 import React, { useMemo } from "react";
 import "./Leaderboard.css";
 import {
+  AorTrackId,
+  CarId,
+  UnifiedLap,
   makeArrayUniqueByKey,
   secondsToLaptime,
   useCombinedLapsBasedOnDatasetSelection,
@@ -19,11 +22,26 @@ import "./Table.css";
 
 const Table = () => {
   const params = useParams();
-  const laps = useCombinedLapsBasedOnDatasetSelection(params.track);
-  const displayedLaps = useMemo(() => {
-    if (params.mode === "drivers") return laps;
-    return makeArrayUniqueByKey(laps, "carId", Object.keys(CARS).length);
+  const laps = useCombinedLapsBasedOnDatasetSelection(
+    params.track as AorTrackId
+  );
+  const [fastestDisplayedLap, ...displayedLaps] = useMemo(() => {
+    const ls: UnifiedLap[] = [];
+    if (params.mode === "drivers") {
+      for (const carId in laps) {
+        ls.push(...(laps[carId as CarId] || []));
+      }
+    } else {
+      for (const carId in laps) {
+        const lap = laps[carId as CarId][0];
+        if (lap) {
+          ls.push(lap);
+        }
+      }
+    }
+    return ls.sort((a, b) => a.lapTime - b.lapTime);
   }, [params.mode, laps]);
+
   const navigate = useNavigate();
   return (
     <>
@@ -64,7 +82,7 @@ const Table = () => {
           </tr>
         </thead>
         <tbody>
-          {displayedLaps.map((l) => (
+          {[fastestDisplayedLap, ...displayedLaps].map((l) => (
             <tr key={l.driverName + l.carName + l.lapTime + l.version}>
               <td>{l.driverName}</td>
               <td>
@@ -76,7 +94,9 @@ const Table = () => {
               <td>
                 <b>{secondsToLaptime(l.lapTime)}</b>
               </td>
-              <td>{l.gap ? secondsToLaptime(l.gap) : ""}</td>
+              <td>
+                {secondsToLaptime(l.lapTime - fastestDisplayedLap.lapTime)}
+              </td>
               <td>{secondsToLaptime(l.s1)}</td>
               <td>{secondsToLaptime(l.s2)}</td>
               <td>{secondsToLaptime(l.s3)}</td>

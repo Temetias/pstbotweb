@@ -82,28 +82,29 @@ const Table = () => {
           </tr>
         </thead>
         <tbody>
-          {[fastestDisplayedLap, ...displayedLaps].map((l) => (
-            <tr key={l.driverName + l.carName + l.lapTime + l.version}>
-              <td>{l.driverName}</td>
-              <td>
-                <div>
-                  <img src={CARS[l.carId as keyof typeof CARS]?.img} alt="" />
-                  {l.carName} {l.carClass} ({l.carYear})
-                </div>
-              </td>
-              <td>
-                <b>{secondsToLaptime(l.lapTime)}</b>
-              </td>
-              <td>
-                {secondsToLaptime(l.lapTime - fastestDisplayedLap.lapTime)}
-              </td>
-              <td>{secondsToLaptime(l.s1)}</td>
-              <td>{secondsToLaptime(l.s2)}</td>
-              <td>{secondsToLaptime(l.s3)}</td>
-              <td>{l.version}</td>
-              <td>{l.server}</td>
-            </tr>
-          ))}
+          {fastestDisplayedLap &&
+            [fastestDisplayedLap, ...displayedLaps].map((l) => (
+              <tr key={l.driverName + l.carName + l.lapTime + l.version}>
+                <td>{l.driverName}</td>
+                <td>
+                  <div>
+                    <img src={CARS[l.carId as keyof typeof CARS]?.img} alt="" />
+                    {l.carName} {l.carClass} ({l.carYear})
+                  </div>
+                </td>
+                <td>
+                  <b>{secondsToLaptime(l.lapTime)}</b>
+                </td>
+                <td>
+                  {secondsToLaptime(l.lapTime - fastestDisplayedLap.lapTime)}
+                </td>
+                <td>{secondsToLaptime(l.s1)}</td>
+                <td>{secondsToLaptime(l.s2)}</td>
+                <td>{secondsToLaptime(l.s3)}</td>
+                <td>{l.version}</td>
+                <td>{l.server}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </>

@@ -219,6 +219,7 @@ const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
           .replace("gt4", "")
           .replace("991ii", "991 ii")
           .replace("gt r", "gt-r")
+          .replace("clubsport", "")
           .replace("huracan", "huracán")
           .replace("supertrofeo", "super trofeo")
           .replace(/\s+/g, " ")
@@ -234,7 +235,7 @@ const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
     carClass,
     carName,
     carYear,
-    driverName: l.driver_name,
+    driverName: l.driver_name.toLowerCase().split("|")[0].trim(),
     lapTime: l.lap_time,
     s1: l.s1_time,
     s2: l.s2_time,
@@ -249,8 +250,10 @@ const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
   const carName = l.car_name
     .toLowerCase()
     .replace("gt3", "")
+    .replace("gt4", "")
     .replace("991ii", "991 ii")
     .replace("gt r", "gt-r")
+    .replace("clubsport", "")
     .replace("huracan", "huracán")
     .replace("supertrofeo", "super trofeo")
     .replace(/\s+/g, " ")
@@ -264,7 +267,9 @@ const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
     carClass,
     carName,
     carYear,
-    driverName: `${l.vorname} ${l.nachname}`,
+    driverName: `${l.vorname.split("|")[0].trim()} ${l.nachname
+      .split("|")[0]
+      .trim()}`,
     lapTime: laptimeToSeconds(l.lap),
     s1: laptimeToSeconds(l.s1),
     s2: laptimeToSeconds(l.s2),

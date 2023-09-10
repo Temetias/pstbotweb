@@ -190,6 +190,10 @@ export const CARS = {
     lfmRelevant: false,
     img: aston,
   },
+  "audi r8 lms GT4 (2018)": {
+    lfmRelevant: false,
+    img: audi,
+  },
   "audi r8 lms GT3 (2015)": {
     lfmRelevant: false,
     img: audi,
@@ -340,10 +344,6 @@ export const CARS = {
   },
   "porsche 992 r GT3 (2023)": {
     lfmRelevant: true,
-    img: porsche,
-  },
-  "porsche 718 cayman clubsport GT4 (2019)": {
-    lfmRelevant: false,
     img: porsche,
   },
   "reiter engineering r-ex GT3 (2017)": {

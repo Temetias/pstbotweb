@@ -45,6 +45,7 @@
 
 .Cars-info label span {
   font-weight: normal;
+  text-transform: capitalize;
 }
 
 .Cars-table {

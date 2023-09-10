@@ -14,3 +14,9 @@
   font-size: 1.15rem;
   margin: 0 0.15rem;
 }
+
+.Table {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}

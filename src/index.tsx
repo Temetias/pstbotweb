@@ -4,16 +4,12 @@ import "./index.css";
 import { Leaderboard } from "./Leaderboard";
 import reportWebVitals from "./reportWebVitals";
 import { StoreProvider } from "./Store";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-} from "react-router-dom";
+import { RouterProvider, Navigate, createHashRouter } from "react-router-dom";
 //import { Bop } from "./Bop";
 import { Layout } from "./Layout";
 import { Cars } from "./Cars";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <Navigate to="/leaderboard" />,

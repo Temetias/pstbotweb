@@ -67,7 +67,7 @@ const Table = () => {
           </ToggleButton>
         ))}
       </div>
-      <table className="Table">
+      <table className="Table Leaderboard-table">
         <thead>
           <tr>
             <th>Driver</th>

@@ -4,7 +4,6 @@ import {
   AorTrackId,
   CarId,
   UnifiedLap,
-  makeArrayUniqueByKey,
   secondsToLaptime,
   useCombinedLapsBasedOnDatasetSelection,
 } from "./Store";

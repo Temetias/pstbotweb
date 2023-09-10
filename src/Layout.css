@@ -38,16 +38,43 @@
   padding: 2rem 4rem;
 }
 
-.Layout-providers {
+.Layout-controls {
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.25rem;
+  justify-content: space-between;
   background-color: #202225;
   border-top: 1px solid #2f3136;
   position: sticky;
   top: 0;
   font-weight: bold;
+  padding: 0.5rem 0.25rem;
+}
+
+.Layout-providers {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.Layout-filter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 1rem;
+}
+
+.Layout-filter label input {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+.Layout-filter label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.Layout-controls div {
+  flex: 1;
 }
 
 .Layout-provider-logo {

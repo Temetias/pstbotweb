@@ -20,24 +20,44 @@ export const Layout = ({ children }: PropsWithChildren) => {
         <Link to="/bop">BoP</Link>
         <Link to="/cars">Cars</Link>
       </header>
-      <div className="Layout-providers">
-        {(["LFM", "combined", "AOR"] as const).map((d) => (
-          <ToggleButton
-            key={d}
-            onClick={() => dispatch((s) => ({ ...s, dataset: d }))}
-            selected={store.dataset === d}
-          >
-            {PROVIDERS[d as keyof typeof PROVIDERS]?.logo ? (
-              <img
-                className="Layout-provider-logo"
-                src={PROVIDERS[d as keyof typeof PROVIDERS]?.logo}
-                alt={d.toUpperCase()}
-              />
-            ) : (
-              d.toUpperCase()
-            )}
-          </ToggleButton>
-        ))}
+      <div className="Layout-controls">
+        <div></div>
+        <div className="Layout-providers">
+          {(["LFM", "combined", "AOR"] as const).map((d) => (
+            <ToggleButton
+              key={d}
+              onClick={() => dispatch((s) => ({ ...s, dataset: d }))}
+              selected={store.dataset === d}
+            >
+              {PROVIDERS[d as keyof typeof PROVIDERS]?.logo ? (
+                <img
+                  className="Layout-provider-logo"
+                  src={PROVIDERS[d as keyof typeof PROVIDERS]?.logo}
+                  alt={d.toUpperCase()}
+                />
+              ) : (
+                d.toUpperCase()
+              )}
+            </ToggleButton>
+          ))}
+        </div>
+        <div className="Layout-filter">
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={store.usablePatchOnly}
+              onClick={(e) => {
+                dispatch((s) => ({
+                  ...s,
+                  usablePatchOnly: (
+                    e as any as React.ChangeEvent<HTMLInputElement>
+                  ).target.checked,
+                }));
+              }}
+            />
+            <span>Only current bop versions</span>
+          </label>
+        </div>
       </div>
       <div className="Layout-children">{children}</div>
     </div>

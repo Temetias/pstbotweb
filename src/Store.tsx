@@ -67,7 +67,7 @@ export type AorGetLapsResponse = {
 }[];
 
 export type UnifiedLap = {
-  carId: string;
+  carId: keyof typeof CARS;
   carClass: string;
   carName: string;
   carYear: number;
@@ -77,12 +77,13 @@ export type UnifiedLap = {
   s2: number;
   s3: number;
   track: AorTrackId;
-  version: string;
+  version: Version;
   server: "AOR" | "LFM";
 };
 
 export type StoreData = {
   dataset: "AOR" | "LFM" | "combined";
+  usablePatchOnly: boolean;
   lfm: {
     laps: Record<AorTrackId, Record<CarId, UnifiedLap[]>>;
   };
@@ -146,8 +147,7 @@ export const useLfmLaps = (
   const dispatch = useStoreDispatch();
   const store = useStore();
   useEffect(() => {
-    if (!aorTrackId || !!Object.keys(store.lfm.laps[aorTrackId] || {}).length)
-      return;
+    if (!aorTrackId) return;
     const lfmTrackId = TRACKS.find((t) => t.aorId === aorTrackId)?.lfmId;
     if (!lfmTrackId) return;
     cachedFetch<LfmGetLapsResponse>(
@@ -162,6 +162,14 @@ export const useLfmLaps = (
             [aorTrackId]: splitArrayByProperty(
               lapsResponse.data
                 .map(lfmLapToUnifiedLap)
+                .filter(
+                  (l) =>
+                    !store.usablePatchOnly ||
+                    isRelevantVersion(
+                      l.version,
+                      CARS[l.carId].usablePatch[l.track]
+                    )
+                )
                 .sort((a, b) => a.lapTime - b.lapTime),
               "carId"
             ),
@@ -169,7 +177,7 @@ export const useLfmLaps = (
         },
       }));
     });
-  }, [aorTrackId]);
+  }, [aorTrackId, store.usablePatchOnly]);
   return aorTrackId
     ? store.lfm.laps[aorTrackId] || {}
     : ({} as Record<CarId, UnifiedLap[]>);
@@ -181,8 +189,7 @@ export const useAorLaps = (
   const dispatch = useStoreDispatch();
   const store = useStore();
   useEffect(() => {
-    if (!aorTrackId || !!Object.keys(store.aor.laps[aorTrackId] || {}).length)
-      return;
+    if (!aorTrackId) return;
     cachedFetch<AorGetLapsResponse>(
       `https://aor-hotlap.skillissue.be/api/hotlaps/${aorTrackId}?patch=1.9`
     ).then((lapsResponse) => {
@@ -195,6 +202,14 @@ export const useAorLaps = (
             [aorTrackId]: splitArrayByProperty(
               lapsResponse
                 .map(aorLapToUnifiedLap)
+                .filter(
+                  (l) =>
+                    !store.usablePatchOnly ||
+                    isRelevantVersion(
+                      l.version,
+                      CARS[l.carId].usablePatch[l.track]
+                    )
+                )
                 .sort((a, b) => a.lapTime - b.lapTime),
               "carId"
             ),
@@ -202,7 +217,7 @@ export const useAorLaps = (
         },
       }));
     });
-  }, [aorTrackId]);
+  }, [aorTrackId, store.usablePatchOnly]);
   return aorTrackId
     ? store.aor.laps[aorTrackId] || {}
     : ({} as Record<CarId, UnifiedLap[]>);
@@ -222,14 +237,18 @@ const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
           .replace("clubsport", "")
           .replace("huracan", "huracán")
           .replace("supertrofeo", "super trofeo")
+          .replace("mercedes-amg", "mercedes amg")
           .replace(/\s+/g, " ")
           .trim();
-  const carClass = l.car_class.toUpperCase().replace("SUPER TROFEO", "ST");
+  const carClass = l.car_class
+    .toUpperCase()
+    .replace("SUPER TROFEO", "ST")
+    .replace("BMW M2", "TCX");
   const carYear =
     l.car_name === "ferrari 488 challenge evo"
       ? 2020
       : parseInt(l.car_name.split("(")[1].split(")")[0]);
-  const carId = `${carName} ${carClass} (${carYear})`;
+  const carId = `${carName} ${carClass} (${carYear})` as CarId;
   return {
     carId,
     carClass,
@@ -257,11 +276,14 @@ const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
     .replace("huracan", "huracán")
     .replace("supertrofeo", "super trofeo")
     .replace(/\s+/g, " ")
+    .replace("mercedes-amg", "mercedes amg")
+    .replace("bmw m2 cs racing", "bmw m2 cs")
+    .replace("porsche 911 cup (type 992)", "porsche 992 cup")
     .trim();
   const carClass = l.car_class.toUpperCase().replace("SUPER TROFEO", "ST");
   const carYear =
     carName === "bmw m4" && carClass === "GT3" ? 2022 : l.car_year;
-  const carId = `${carName} ${carClass} (${carYear})`;
+  const carId = `${carName} ${carClass} (${carYear})` as CarId;
   return {
     carId,
     carClass,
@@ -374,6 +396,21 @@ export const findMostCommonValue = <T extends object>(
   return mostCommonValue;
 };
 
+export const isRelevantVersion = (subject: Version, target: Version) => {
+  const v1 = subject.split(".").map(Number);
+  const v2 = target.split(".").map(Number);
+  for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+    const num1 = v1[i] || 0;
+    const num2 = v2[i] || 0;
+    if (num1 > num2) {
+      return true;
+    } else if (num1 < num2) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const StoreContext = createContext<{
   store: StoreData;
   dispatch: React.Dispatch<React.SetStateAction<StoreData>>;
@@ -381,6 +418,7 @@ const StoreContext = createContext<{
   dispatch: (_) => {},
   store: {
     dataset: "combined",
+    usablePatchOnly: true,
     lfm: {
       laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
@@ -406,6 +444,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
     dataset: "combined",
+    usablePatchOnly: true,
     lfm: {
       laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },

@@ -816,7 +816,7 @@ export const CARS = {
     },
   },
   "honda nsx GT3 (2017)": {
-    lfmRelevant: true,
+    lfmRelevant: false,
     img: honda,
     usablePatch: {
       cota: "1.9.0",

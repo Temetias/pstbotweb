@@ -15,6 +15,7 @@ import {
   findMostCommonValue,
   makeArrayUniqueByKey,
   secondsToLaptime,
+  useBop,
   useCombinedLapsBasedOnDatasetSelection,
   useStore,
 } from "./Store";
@@ -32,6 +33,8 @@ const TableTrackRow = ({
 }) => {
   const laps = useCombinedLapsBasedOnDatasetSelection(aorTrackId);
   const lap = laps[carId]?.[0];
+  const bop = useBop(aorTrackId)[carId]?.[0];
+  const dataset = useStore().dataset;
 
   const fastestLapsForOtherCars = useMemo(() => {
     let lapsClone = { ...laps };
@@ -72,6 +75,11 @@ const TableTrackRow = ({
             secondsToLaptime(lap.lapTime - fastestLapForOtherCars.lapTime)}
         </b>
       </td>
+      {dataset === "combined" && (
+        <td>
+          {bop?.bop} {bop?.bop !== bop?.bopRaw ? `(${bop?.bopRaw})` : ""}
+        </td>
+      )}
       <td>{lap.driverName}</td>
       <td>{lap.version}</td>
       <td>{lap.server}</td>
@@ -166,6 +174,7 @@ const CarContent = ({ carId }: { carId: CarId }) => {
             <th>Track</th>
             <th>Lap</th>
             <th>Gap</th>
+            {store.dataset === "combined" && <th>BOP</th>}
             <th>Driver</th>
             <th>Version</th>
             <th>Server</th>

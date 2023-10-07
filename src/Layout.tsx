@@ -3,12 +3,16 @@ import { useStore, useStoreDispatch } from "./Store";
 import logo from "./logos/PST_Wicked.png";
 import { ToggleButton } from "./Toggles";
 import "./Layout.css";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { PROVIDERS } from "./constants";
 
-export const Layout = ({ children }: PropsWithChildren) => {
+export const Layout = ({
+  children,
+  hideDataset,
+}: PropsWithChildren<{ hideDataset?: boolean }>) => {
   const dispatch = useStoreDispatch();
   const store = useStore();
+  const path = useParams();
   return (
     <div className="Layout">
       <header className="Layout-header">
@@ -23,23 +27,25 @@ export const Layout = ({ children }: PropsWithChildren) => {
       <div className="Layout-controls">
         <div></div>
         <div className="Layout-providers">
-          {(["LFM", "combined", "AOR"] as const).map((d) => (
-            <ToggleButton
-              key={d}
-              onClick={() => dispatch((s) => ({ ...s, dataset: d }))}
-              selected={store.dataset === d}
-            >
-              {PROVIDERS[d as keyof typeof PROVIDERS]?.logo ? (
-                <img
-                  className="Layout-provider-logo"
-                  src={PROVIDERS[d as keyof typeof PROVIDERS]?.logo}
-                  alt={d.toUpperCase()}
-                />
-              ) : (
-                d.toUpperCase()
-              )}
-            </ToggleButton>
-          ))}
+          {(["LFM", "combined", "AOR"] as const)
+            .filter((d) => !hideDataset || d === "combined")
+            .map((d) => (
+              <ToggleButton
+                key={d}
+                onClick={() => dispatch((s) => ({ ...s, dataset: d }))}
+                selected={store.dataset === d}
+              >
+                {PROVIDERS[d as keyof typeof PROVIDERS]?.logo ? (
+                  <img
+                    className="Layout-provider-logo"
+                    src={PROVIDERS[d as keyof typeof PROVIDERS]?.logo}
+                    alt={d.toUpperCase()}
+                  />
+                ) : (
+                  d.toUpperCase()
+                )}
+              </ToggleButton>
+            ))}
         </div>
         <div className="Layout-filter">
           <label>

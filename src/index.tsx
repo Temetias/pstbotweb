@@ -5,9 +5,8 @@ import { Leaderboard } from "./Leaderboard";
 import reportWebVitals from "./reportWebVitals";
 import { StoreProvider } from "./Store";
 import { RouterProvider, Navigate, createHashRouter } from "react-router-dom";
-//import { Bop } from "./Bop";
-import { Layout } from "./Layout";
 import { Cars } from "./Cars";
+import { Bop } from "./Bop";
 
 const router = createHashRouter([
   {
@@ -22,17 +21,9 @@ const router = createHashRouter([
     path: "/cars/*",
     element: <Cars />,
   },
-  /*   {
+  {
     path: "/bop/*",
     element: <Bop />,
-  }, */
-  {
-    path: "*",
-    element: (
-      <Layout>
-        <h2>Coming soon</h2>
-      </Layout>
-    ),
   },
 ]);
 

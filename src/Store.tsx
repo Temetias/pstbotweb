@@ -51,6 +51,38 @@ export type LfmGetLapsResponse = {
   filters: Record<string, string>;
 };
 
+export type LfmBopLap = {
+  bop: number; // -2;
+  bop_raw: number; // -2;
+  car_id: number; // 22;
+  car_name: string; // "McLaren 720S GT3";
+  car_year: number; // 2019;
+  lap: string; // "01:39.800";
+  target_dif: string; // "+00:00.031";
+};
+
+export type UnifiedLfmBopLap = {
+  bop: number;
+  bopRaw: number;
+  carId: CarId;
+  carClass: string;
+  carName: string;
+  carYear: number;
+  lap: string;
+  diff: string;
+  relevant: "true" | "false";
+};
+
+export type LfmGetBopResponse = {
+  bopdata: {
+    target_time: string; // 01:39.768
+    fastestCarMaxBallast: string; // 01:39.768
+    KgTime: number; // 0.02
+  };
+  laps_others: LfmBopLap[];
+  laps_relevant: LfmBopLap[];
+};
+
 export type AorGetLapsResponse = {
   acc_patch: Version; // "1.9.5";
   avg_speed: number; // 195;
@@ -90,6 +122,7 @@ export type StoreData = {
   aor: {
     laps: Record<AorTrackId, Record<CarId, UnifiedLap[]>>;
   };
+  bop: Record<AorTrackId, Record<CarId, [UnifiedLfmBopLap]>>;
 };
 
 export const laptimeToSeconds = (laptime: string) => {
@@ -223,6 +256,55 @@ export const useAorLaps = (
     : ({} as Record<CarId, UnifiedLap[]>);
 };
 
+export const useBop = (
+  aorTrackId?: AorTrackId
+): Record<CarId, [UnifiedLfmBopLap]> => {
+  const dispatch = useStoreDispatch();
+  const store = useStore();
+  useEffect(() => {
+    if (!aorTrackId) return;
+    const lfmTrackId = TRACKS.find((t) => t.aorId === aorTrackId)?.lfmId;
+    if (!lfmTrackId) return;
+    cachedFetch<LfmGetBopResponse>(
+      `https://api2.lowfuelmotorsport.com/api/hotlaps/getBopPrediction?track=${lfmTrackId}`
+    ).then((bopResponse) => {
+      dispatch((s) => ({
+        ...s,
+        bop: {
+          ...s.bop,
+          [aorTrackId]: {
+            ...splitArrayByProperty(
+              bopResponse.laps_relevant.map((l) => ({
+                ...buildLfmUnifiedLapCarData(l.car_name, "GT3", l.car_year),
+                bop: l.bop,
+                bopRaw: l.bop_raw,
+                lap: l.lap,
+                diff: l.target_dif,
+                relevant: "true",
+              })),
+              "carId"
+            ),
+            ...splitArrayByProperty(
+              bopResponse.laps_others.map((l) => ({
+                ...buildLfmUnifiedLapCarData(l.car_name, "GT3", l.car_year),
+                bop: l.bop,
+                bopRaw: l.bop_raw,
+                lap: l.lap,
+                diff: l.target_dif,
+                relevant: "false",
+              })),
+              "carId"
+            ),
+          },
+        },
+      }));
+    });
+  }, [aorTrackId]);
+  return aorTrackId
+    ? store.bop[aorTrackId] || {}
+    : ({} as Record<CarId, [UnifiedLfmBopLap]>);
+};
+
 const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
   const carName =
     l.car_name === "ferrari 488 challenge evo"
@@ -265,8 +347,12 @@ const aorLapToUnifiedLap = (l: AorGetLapsResponse[number]): UnifiedLap => {
   };
 };
 
-const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
-  const carName = l.car_name
+const buildLfmUnifiedLapCarData = (
+  carNameRaw: string,
+  carClassRaw: string,
+  carYearRaw: number
+) => {
+  const carName = carNameRaw
     .toLowerCase()
     .replace("gt3", "")
     .replace("gt4", "")
@@ -280,10 +366,19 @@ const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
     .replace("bmw m2 cs racing", "bmw m2 cs")
     .replace("porsche 911 cup (type 992)", "porsche 992 cup")
     .trim();
-  const carClass = l.car_class.toUpperCase().replace("SUPER TROFEO", "ST");
+  const carClass = carClassRaw.toUpperCase().replace("SUPER TROFEO", "ST");
   const carYear =
-    carName === "bmw m4" && carClass === "GT3" ? 2022 : l.car_year;
+    carName === "bmw m4" && carClass === "GT3" ? 2022 : carYearRaw;
   const carId = `${carName} ${carClass} (${carYear})` as CarId;
+  return { carName, carClass, carYear, carId };
+};
+
+const lfmLapToUnifiedLap = (l: LfmGetLapsResponseData[number]): UnifiedLap => {
+  const { carName, carClass, carYear, carId } = buildLfmUnifiedLapCarData(
+    l.car_name,
+    l.car_class,
+    l.car_year
+  );
   return {
     carId,
     carClass,
@@ -425,6 +520,7 @@ const StoreContext = createContext<{
     aor: {
       laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
+    bop: {} as Record<AorTrackId, Record<CarId, [UnifiedLfmBopLap]>>,
   },
 });
 
@@ -448,6 +544,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     lfm: {
       laps: {} as Record<AorTrackId, Record<CarId, UnifiedLap[]>>,
     },
+    bop: {} as Record<AorTrackId, Record<CarId, [UnifiedLfmBopLap]>>,
   });
 
   return (
